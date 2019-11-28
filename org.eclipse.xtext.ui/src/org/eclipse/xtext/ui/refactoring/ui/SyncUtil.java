@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -29,6 +30,7 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.service.OperationCanceledError;
 import org.eclipse.xtext.ui.editor.XtextEditor;
 import org.eclipse.xtext.ui.editor.validation.ValidationJob;
+import org.eclipse.xtext.ui.internal.Activator;
 import org.eclipse.xtext.util.concurrent.IUnitOfWork;
 
 import com.google.inject.Inject;
@@ -147,7 +149,11 @@ public class SyncUtil {
 
 	public void waitForBuild(IProgressMonitor monitor) {
 		try {
-			workspace.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+			IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+			Boolean isDisabled = prefs.getBoolean("REFACTORING_SKIP_BUILD");
+			if (!isDisabled) {
+				workspace.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+			}
 		} catch (CoreException e) {
 			throw new OperationCanceledException(e.getMessage());
 		}
